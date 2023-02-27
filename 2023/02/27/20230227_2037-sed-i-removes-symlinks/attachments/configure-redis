@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# http://www.gnu.org/software/bash/manual/bash.html#The-Set-Builtin
+# http://redsymbol.net/articles/unofficial-bash-strict-mode/
+set -o nounset -o errexit -o pipefail
+
+script=`realpath $0`
+scriptdir=`dirname $script`
+scriptname=`basename $script`
+
+# Ask password as soon as possible
+sudo true
+
+sudo apt install -y redis-server redis
+sudo sed -i 's/^bind.*/bind 172.17.0.1 127.0.0.1 ::1/' /etc/redis/redis.conf
+sudo sed -i 's/^\(After=.*\) docker.service/\1/' /lib/systemd/system/redis-server.service
+sudo sed -i 's/^\(After=.*\)/\1 docker.service/' /lib/systemd/system/redis-server.service
+
+# Warning: The unit file, source configuration file or drop-ins of
+# redis.service changed on disk. Run 'systemctl daemon-reload' to reload units.
+sudo systemctl daemon-reload
+
+# GOTCHA
+# The following two commands results in `redis` servise being not able to load!
+# The message in logs does not help.  What happens here is `sed` replace
+# symlink `/etc/systemd/system/redis.service -> /lib/systemd/system/redis-server.service`
+# by ordinary file which makes `redis` service broken!
+#
+# $ ls -alh /etc/systemd/system/redis.service
+# lrwxrwxrwx 1 root root 40 Feb 27 19:54 /etc/systemd/system/redis.service -> /lib/systemd/system/redis-server.service
+# $ sudo sed -i 's/^\(After=.*\) docker.service/\1/' /etc/systemd/system/redis.service
+# $ sudo sed -i 's/^\(After=.*\)/\1 docker.service/' /etc/systemd/system/redis.service
+# $ ls -alh /etc/systemd/system/redis.service
+# -rw-r--r-- 1 root root 1.2K Feb 27 19:55 /etc/systemd/system/redis.service
+
+sudo service redis sudo
+PAGER=cat sudo service redis status
