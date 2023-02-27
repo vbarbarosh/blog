@@ -13,7 +13,7 @@ PURPLE="\e[35m" CYAN="\e[36m" WHITE="\e[37m" RESET="\e[0m"
 
 cd $scriptdir/..
 
-d=archive/`date +%Y/%m/%d/%Y%m%d_%H%M-xxx`
+d=db/`date +%Y/%m/%d/%Y%m%d_%H%M-xxx`
 mkdir -p $d
 cd $d
 gvim README.md
