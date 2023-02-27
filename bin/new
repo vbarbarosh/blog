@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# http://www.gnu.org/software/bash/manual/bash.html#The-Set-Builtin
+# http://redsymbol.net/articles/unofficial-bash-strict-mode
+set -o nounset -o errexit -o pipefail
+
+script=`realpath $0`
+scriptdir=`dirname $script`
+scriptname=`basename $script`
+
+BLACK="\e[30m" RED="\e[31m" GREEN="\e[32m" YELLOW="\e[33m" BLUE="\e[34m"
+PURPLE="\e[35m" CYAN="\e[36m" WHITE="\e[37m" RESET="\e[0m"
+
+cd $scriptdir/..
+
+d=`date +%Y/%m/%d/%Y%m%d_%H%M-xxx`
+mkdir -p $d
+cd $d
+gvim README.md
+
+echo -e $YELLOW
+echo $d
+echo -e $RESET
