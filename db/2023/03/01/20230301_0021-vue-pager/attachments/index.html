@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://unpkg.com/@vbarbarosh/smcss@0.8.1/dist/reset.css" rel="stylesheet">
+    <link href="https://unpkg.com/@vbarbarosh/smcss@0.8.1/dist/sm.css" rel="stylesheet">
+    <title>@vbarbarosh/vue-pager</title>
+</head>
+<body>
+
+<div id="app">
+
+<table>
+<thead>
+<tr>
+    <th>image</th>
+    <th>url</th>
+</tr>
+</thead>
+<tbody>
+<tr v-for="item in pager.items">
+    <td class="w0 h60 c">
+        <img v-bind:src="item.image_url" class="max-w50 max-h50 vm">
+    </td>
+    <td>
+        <a v-bind:href="item.url" target="_blank" class="db lh25m">
+            {{ item.url }}
+        </a>
+    </td>
+</tr>
+</tbody>
+</table>
+
+<div class="abs-b p10 yellow">
+    <button v-on:click="pager.goto(1)" v-bind:disabled="(pager.page_active == 1)">first</button>
+    <button v-on:click="pager.goto(pager.page_total)" v-bind:disabled="(pager.page_active == pager.page_total)">last</button>
+    <span class="ml25"></span>
+    <button v-on:click="pager.prev" v-bind:disabled="!pager.has_prev">prev</button>
+    <button v-on:click="pager.next" v-bind:disabled="!pager.has_next">next</button>
+    <span class="ml25"></span>
+    <select v-model="pager.page_active">
+        <option v-for="page in pager.page_numbers">{{ page }}</option>
+    </select>
+    of {{ pager.page_total }}
+    <span class="ml25"></span>
+    limit={{ pager.limit }}
+    offset={{ pager.offset }}
+    total={{ pager.total }}
+    <span class="ml25"></span>
+    <input v-model="search" v-on:keyup.enter="pager.rewind" v-on:keyup.esc="keyup_esc_search">
+</div>
+
+</div>
+
+<script src="https://unpkg.com/jquery@3.6.3/dist/jquery.js"></script>
+<script src="https://unpkg.com/bluebird@3.7.2/js/browser/bluebird.js"></script>
+<script src="https://unpkg.com/vue@2.7.14/dist/vue.js"></script>
+<script src="https://unpkg.com/@vbarbarosh/vue-pager@1.0.2/dist/vue-pager.js"></script>
+<script src="db.js"></script>
+<script>
+new Vue({
+    el: '#app',
+    data: function () {
+        return {
+            pager: vue_pager(this.api_list),
+            search: '',
+        };
+    },
+    methods: {
+        api_list: function (query) {
+            const q = this.search.trim();
+            const db2 = db.filter(v => !q || v.url.includes(q)); 
+            const limit = query.limit || 10;
+            const offset = query.offset || 0;
+            return {
+                total: db2.length,
+                limit,
+                offset,
+                items: JSON.parse(JSON.stringify(db2.slice(offset, offset + limit))),
+            };
+        },
+        resize: function () {
+            this.pager.limit = Math.max(1, Math.floor(window.innerHeight/70) - 1);
+        },
+        keyup_esc_search: function () {
+            this.search = '';
+            this.pager.rewind();
+        },
+    },
+    created: function () {
+        window.addEventListener('resize', this.resize);
+        this.resize();
+    },
+});
+</script>
+
+</body>
+</html>
